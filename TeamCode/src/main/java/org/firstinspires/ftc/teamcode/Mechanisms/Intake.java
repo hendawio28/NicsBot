@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Intake {
     private DcMotor intakeMotor;
+    private double lastPower;
 
     public void init (HardwareMap hwMap) {
         intakeMotor = hwMap.get(DcMotor.class, "Intake");
@@ -15,14 +16,18 @@ public class Intake {
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
     public void intake (double intakeSpeed) {
-        if (intakeSpeed >= 0.3) {
-            intakeMotor.setPower(1.0);
+        double targetPower = 0.0;
+        if (intakeSpeed >= 0.1) {
+            targetPower= 1.0;
         }
-        else if (intakeSpeed <= -0.3) {
-            intakeMotor.setPower(-1.0);
+        else if (intakeSpeed <= -0.1) {
+            targetPower = -1.0;
         }
         else {
-            intakeMotor.setPower(0.0);
+            targetPower = 0.0;
+        }
+        if (targetPower !=lastPower) {
+            intakeMotor.setPower(targetPower);
         }
 
 }

@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.Mechanisms.Flywheel;
+import org.firstinspires.ftc.teamcode.Mechanisms.IndexerFSM;
 import org.firstinspires.ftc.teamcode.Mechanisms.Intake;
 import org.firstinspires.ftc.teamcode.Mechanisms.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Mechanisms.Indexer;
@@ -11,14 +13,18 @@ import org.firstinspires.ftc.teamcode.Mechanisms.Indexer;
 public class Teleop  extends OpMode {
     MecanumDrive mecanumDrive = new MecanumDrive();
     Intake intake = new Intake();
-    Indexer indexer = new Indexer();
+    //Indexer indexer = new Indexer();
+    IndexerFSM indexerFSM = new IndexerFSM();
+    Flywheel flywheel = new Flywheel();
     private double lastTime;
-    private boolean shoot, spin_for_intake, intakeOn, intakeWasOn= false;
+    private boolean spin_for_intake, intakeOn, intakeWasOn= false;
     @Override
     public void init() {
         mecanumDrive.init(hardwareMap);
         intake.init(hardwareMap);
-        indexer.init(hardwareMap);
+        //indexer.init(hardwareMap);
+        indexerFSM.init(hardwareMap);
+        flywheel.init(hardwareMap);
     }
 
     @Override
@@ -45,7 +51,7 @@ public class Teleop  extends OpMode {
         ////Indexer Code
 
         //Assigning Variables
-        shoot = gamepad1.rightBumperWasPressed();
+        boolean shoot = gamepad1.rightBumperWasPressed();
         intakeOn = intakeSpeed >= 0.3;
         if (intakeOn && !intakeWasOn) {
             spin_for_intake = true;
@@ -58,7 +64,21 @@ public class Teleop  extends OpMode {
             spin_for_intake = false;
         }
 
-        indexer.autoSpin(shoot, spin_for_intake);
+        //indexer.autoSpin(shoot, spin_for_intake);
+
+        if (shoot) {
+            indexerFSM.setTargetState(IndexerFSM.IndexerState.GO_TO_SHOOT);
+        } else if (spin_for_intake) {
+            indexerFSM.setTargetState(IndexerFSM.IndexerState.GO_TO_INTAKE);
+        }
+        indexerFSM.update();
+        flywheel.fly();
+
+        telemetry.addData("Indexer State", indexerFSM.getStateName());
+        telemetry.addData("Current Slot", indexerFSM.getCurrentSlot());
+        telemetry.update();
+
         intakeWasOn = intakeOn;
+
     }
 }
