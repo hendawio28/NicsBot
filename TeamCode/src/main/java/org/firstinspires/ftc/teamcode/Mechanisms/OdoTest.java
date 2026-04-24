@@ -19,7 +19,7 @@ public class OdoTest extends OpMode {
     public final static double goalYPos = 70;
     public final static double goalXPos = 70;
     private final double tiksPerRev = 537.7;
-    boolean set = false;
+    boolean set, done = false;
     double xPos, yPos, currentHeading, yDistance, xDistance, totalDistance, globalTargetAngle, turretTargetAngle;
     @Override
     public void init() {
@@ -50,8 +50,9 @@ public class OdoTest extends OpMode {
         }
         else {
             turretMotor.setPower(0.0);
+            done = true;
         }
-        if (!set) {
+        if (!set && done) {
             turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             turretMotor.setTargetPosition(0); // Good practice before switching to RUN_TO_POSITION
             turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
