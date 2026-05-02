@@ -4,6 +4,8 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -12,21 +14,26 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 @TeleOp
 public class OdoTest extends OpMode {
     private final ElapsedTime initTimer = new ElapsedTime();
-    private static final  Pose2D startingPosition = new Pose2D(DistanceUnit.INCH, 24, -63, AngleUnit.DEGREES, 90);
+    private static final  Pose2D startingPosition = new Pose2D(DistanceUnit.INCH, -63, 24, AngleUnit.DEGREES, 0);
     private GoBildaPinpointDriver odo;
-    private DcMotor turretMotor;
+    private DcMotorEx turretMotor;
+    private DcMotorEx flywheel = null;
     MecanumDrive mecanumDrive = new MecanumDrive();
     public final static double goalYPos = 70;
     public final static double goalXPos = 70;
-    private final double tiksPerRev = 537.7;
+    private final double ticksPerRev = 537.7;
     boolean set, done = false;
     double xPos, yPos, currentHeading, yDistance, xDistance, totalDistance, globalTargetAngle, turretTargetAngle;
     @Override
     public void init() {
         initTimer.reset();
-        turretMotor = hardwareMap.get(DcMotor.class, "turret");
+        turretMotor = hardwareMap.get(DcMotorEx.class, "turret");
+        flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
+        flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        flywheel.setDirection(DcMotorEx.Direction.REVERSE);
         turretMotor.setPower(0.0);
         turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        turretMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         mecanumDrive.init(hardwareMap);
         odo = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
 
@@ -34,7 +41,7 @@ public class OdoTest extends OpMode {
 
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
 
-        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
 
         odo.recalibrateIMU();
 
@@ -45,7 +52,7 @@ public class OdoTest extends OpMode {
 
     @Override
     public void init_loop() {
-        if (initTimer.seconds() < 10) {
+        if (initTimer.seconds() < 3) {
             turretMotor.setPower(0.3);
         }
         else {
@@ -55,14 +62,15 @@ public class OdoTest extends OpMode {
         if (!set && done) {
             turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             turretMotor.setTargetPosition(0); // Good practice before switching to RUN_TO_POSITION
+            turretMotor.setDirection(DcMotorSimple.Direction.FORWARD);
             turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             set = true;
+            telemetry.addLine("Yay");
         }
     }
 
     @Override
     public void loop() {
-
         odo.update();
 
         double forward = -gamepad1.left_stick_y;
@@ -89,16 +97,18 @@ public class OdoTest extends OpMode {
 
         }
 
-        turretMotor.setTargetPosition((int)(Math.round(turretTargetAngle*(tiksPerRev/360)*3.8)));
-        turretMotor.setPower(0.5);
-        telemetry.addData("X Position", odo.getPosX(DistanceUnit.MM));
-        telemetry.addData("Y Position", odo.getPosY(DistanceUnit.MM));
+        turretMotor.setTargetPosition((int)(Math.round(turretTargetAngle*(ticksPerRev /360)*3.8)));
+        turretMotor.setPower(1.0);
+        telemetry.addData("X Position", xPos);
+        telemetry.addData("Y Position", yPos);
         telemetry.addData("RobotHeading", currentHeading);
         telemetry.addData("targetAngle", globalTargetAngle);
         telemetry.addData("TurretTargetAngle", turretTargetAngle);
         telemetry.addData("xDistance", xDistance);
         telemetry.addData("yDistance", yDistance);
         telemetry.addData("Distance to Goal",totalDistance);
+        telemetry.addData("encoder reading",flywheel.getCurrentPosition());
+        telemetry.addData("velocity", flywheel.getVelocity());
 
         telemetry.update();
 
