@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Mechanisms;
+package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -30,7 +30,7 @@ public class OdoTest extends OpMode {
         turretMotor = hardwareMap.get(DcMotorEx.class, "turret");
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
         flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        flywheel.setDirection(DcMotorEx.Direction.REVERSE);
+
         turretMotor.setPower(0.0);
         turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         turretMotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -72,7 +72,7 @@ public class OdoTest extends OpMode {
     @Override
     public void loop() {
         odo.update();
-
+        flywheel.setVelocity(100);
         double forward = -gamepad1.left_stick_y;
         double strafe = gamepad1.left_stick_x;
         double rotate = gamepad1.right_stick_x;

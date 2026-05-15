@@ -1,11 +1,10 @@
-package org.firstinspires.ftc.teamcode.Mechanisms;
+package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Flywheel {
-    private double targetvelocity = 0;
     DcMotorEx flywheelMotor;
     public void init (HardwareMap hwMap) {
         flywheelMotor = hwMap.get(DcMotorEx.class, "flywheel");
@@ -14,17 +13,17 @@ public class Flywheel {
 
         flywheelMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
-    public void fly () {
-        flywheelMotor.setVelocity(targetvelocity);
+    public void fly (double targetVelocity) {
+        flywheelMotor.setVelocity(targetVelocity);
     }
-    public boolean ready () {
-        double currentVelocity = flywheelMotor.getVelocity();
-        double velocityDifference = Math.abs(targetvelocity-currentVelocity);
-        if (velocityDifference < 30) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
+//    public boolean ready () {
+//        double currentVelocity = flywheelMotor.getVelocity();
+//        double velocityDifference = Math.abs(targetvelocity-currentVelocity);
+//        if (velocityDifference < 30) {
+//            return true;
+//        }
+//        else {
+//            return false;
+//        }
+//    }
 }

@@ -3,19 +3,18 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.Mechanisms.Flywheel;
-import org.firstinspires.ftc.teamcode.Mechanisms.IndexerFSM;
-import org.firstinspires.ftc.teamcode.Mechanisms.Intake;
-import org.firstinspires.ftc.teamcode.Mechanisms.MecanumDrive;
-import org.firstinspires.ftc.teamcode.Mechanisms.Indexer;
+import org.firstinspires.ftc.teamcode.subsystems.Flywheel;
+import org.firstinspires.ftc.teamcode.subsystems.IndexerFSM;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.MecanumDrive;
 
 @TeleOp
 public class Teleop  extends OpMode {
     MecanumDrive mecanumDrive = new MecanumDrive();
     Intake intake = new Intake();
-    //Indexer indexer = new Indexer();
     IndexerFSM indexerFSM = new IndexerFSM();
     Flywheel flywheel = new Flywheel();
+
     private double lastTime;
     private boolean spin_for_intake, intakeOn, intakeWasOn= false;
     @Override
@@ -25,6 +24,7 @@ public class Teleop  extends OpMode {
         //indexer.init(hardwareMap);
         indexerFSM.init(hardwareMap);
         flywheel.init(hardwareMap);
+
     }
 
     @Override
@@ -72,7 +72,7 @@ public class Teleop  extends OpMode {
             indexerFSM.setTargetState(IndexerFSM.IndexerState.GO_TO_INTAKE);
         }
         indexerFSM.update();
-        flywheel.fly();
+        //flywheel.fly();
 
         telemetry.addData("Indexer State", indexerFSM.getStateName());
         telemetry.addData("Current Slot", indexerFSM.getCurrentSlot());
