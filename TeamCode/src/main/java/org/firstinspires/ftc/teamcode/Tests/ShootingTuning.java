@@ -36,8 +36,8 @@ public class ShootingTuning extends OpMode {
         flywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
         hood = hardwareMap.get(Servo.class, "hood");
+        hood.setDirection(Servo.Direction.REVERSE);
         hood.setPosition(0.0);
-        hood.setDirection(Servo.Direction.FORWARD);
     }
 
     @Override
@@ -81,10 +81,10 @@ public class ShootingTuning extends OpMode {
         targetVelocity += increment;
         flywheel.setVelocity(targetVelocity);
 
-        if (gamepad2.rightBumperWasPressed()) {
+        if (gamepad1.xWasReleased()) {
             servoIncrement = 0.001;
         }
-        else if (gamepad2.leftBumperWasPressed()) {
+        else if (gamepad1.aWasReleased()) {
             servoIncrement = -0.001;
         }
         servoPos += servoIncrement;
@@ -93,6 +93,7 @@ public class ShootingTuning extends OpMode {
         } else if ( servoPos < 0) {
             servoPos = 0;
         }
+
         hood.setPosition(servoPos);
         telemetry.addData("Distance", distance);
         telemetry.addData("TargetVelocity", targetVelocity);

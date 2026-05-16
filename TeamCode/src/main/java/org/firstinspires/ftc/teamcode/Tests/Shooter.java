@@ -1,106 +1,158 @@
-//package org.firstinspires.ftc.teamcode.Tests;
-//
-//import com.pedropathing.geometry.Pose;
-//import com.qualcomm.robotcore.util.Range;
-//
-//import org.firstinspires.ftc.teamcode.subsystems.Flywheel;
-//import org.firstinspires.ftc.teamcode.subsystems.Localizer;
-//import org.firstinspires.ftc.teamcode.subsystems.Turret;
-//
-//import com.pedropathing.math.Vector;
-//public class Shooter {
-//    final double TICKS_PER_REV = 28.0;
-//    final double WHEEL_DIAMETER_INCHES = 3.78;
-//    final double HOODED_MULTIPLIER = 2.0;
-//    double COMPRESSION_TUNING_FACTOR = 1.15;
-//    public static Pose GOAL_POS_RED = new Pose(138, 138);
-//    public static Pose GOAL_POS_BLUE = GOAL_POS_RED.mirror();
-//    public static double SCORE_HEIGHT = 26;
-//    public static double SCORE_ANGLE = Math.toRadians(-30);
-//    public static double PASS_THROUGH_POINT_RADIUS = 5;
-//    public static double MIN_HOOD_ANGLE = 35;
-//    public static double MAX_HOOD_ANGLE = 60;
-//    double hoodPos, turretAngle, flywheelTicks;
-//    Flywheel flywheel = new Flywheel();
-//    public void calculateShootVectorAndUpdateTurret(double robotHeading, Localizer localizer) {
-//
-//        // 1. Get current position from your localizer
-//        double xPos = localizer.getXPos();
-//        double yPos = localizer.getYPos();
-//
-//        // 2. Create the Goal Vector (Field-Centric)
-//        double xDistance = Turret.BLUE_GOAL_X_POS - xPos;
-//        double yDistance = Turret.GOAL_Y_POS - yPos;
-//        Vector robotToGoalVector = new Vector(xDistance, yDistance);
-//
-//        // 3. Get the Velocity Vector from your localizer (Replaces hardware.poseTracker.getVelocity())
-//        Vector robotVelocity = localizer.getVelocity();
-//
-//        // --- START OF TUTORIAL MATH FROM SCREENSHOT ---
-//
-//        // Calculate the angle difference between movement and the goal
-//        double coordinateTheta = robotVelocity.getTheta() - robotToGoalVector.getTheta();
-//
-//        // Get parallel and perpendicular velocity components for compensation
-//        double parallelComponent = -Math.cos(coordinateTheta) * robotVelocity.getMagnitude();
-//        double perpendicularComponent = Math.sin(coordinateTheta) * robotVelocity.getMagnitude();
-//
-//        // Physics constants from your screenshot
-//        double g = 32.174 * 12; // Gravity in inches/s^2
-//        double x = robotToGoalVector.getMagnitude() - ShooterConstants.PASS_THROUGH_POINT_RADIUS;
-//        double y = ShooterConstants.SCORE_HEIGHT;
-//        double a = ShooterConstants.SCORE_ANGLE;
-//
-//        // Initial launch component calculations
-//        double hoodAngle = Math.atan(2 * y / x - Math.tan(a));
-//        // Clip the hood angle to your mechanical limits
-//        hoodAngle = Range.clip(hoodAngle, ShooterConstants.MIN_HOOD_ANGLE, ShooterConstants.MAX_HOOD_ANGLE);
-//
-//        double flywheelSpeed = Math.sqrt(g * x * x / (2 * Math.pow(Math.cos(hoodAngle), 2) * (x * Math.tan(hoodAngle) - y)));
-//
-//        // Velocity compensation variables (The 'Moving Shot' logic)
-//        double vz = flywheelSpeed * Math.sin(hoodAngle);
-//        double time = x / (flywheelSpeed * Math.cos(hoodAngle));
-//        double ivr = x / time + parallelComponent;
-//        double nvr = Math.sqrt(ivr * ivr + perpendicularComponent * perpendicularComponent);
-//        double ndr = nvr * time;
-//
-//        // Recalculate final launch components based on motion
-//        hoodAngle = Math.atan(vz / nvr);
-//        hoodAngle = Range.clip(hoodAngle, ShooterConstants.MIN_HOOD_ANGLE, ShooterConstants.MAX_HOOD_ANGLE);
-//
-//        flywheelSpeed = Math.sqrt(g * ndr * ndr / (2 * Math.pow(Math.cos(hoodAngle), 2) * (ndr * Math.tan(hoodAngle) - y)));
-//        flywheelTicks = shooterMISC.velocityToTicks(flywheelSpeed);
-//        double turretVelCompOffset = Math.atan(perpendicularComponent / ivr);
-//        turretAngle = Math.toDegrees(robotHeading - robotToGoalVector.getTheta() + turretVelCompOffset);
-//        turretAngle = turret.correctAngle(turretAngle);
-//        hoodPos = shooterConstants.angleToPos(hoodAngle);
-//    }
-//    public double getHoodPos (){
-//        return hoodPos;
-//    }
-//    public double getTurretAngle () {
-//        return turretAngle;
-//    }
-//    public double getFlywheelTicks () {
-//        return flywheelTicks;
-//    }
-//    public double angleToPos (double angle) {
-//        double pos = (angle - 35) * 1/25;
-//        //remember to set servo limits to 0, 0.076
-//        return pos;
-//    }
-//    public double velocityToTicks (double velocity) {
-//        double circumference = WHEEL_DIAMETER_INCHES * Math.PI;
-//
-//        double baseRotationsPerSec = velocity / circumference;
-//
-//        double hoodedRotationsPerSec = baseRotationsPerSec * HOODED_MULTIPLIER;
-//
-//        double actualRotationsPerSec = hoodedRotationsPerSec * COMPRESSION_TUNING_FACTOR;
-//
-//        double ticks = actualRotationsPerSec * TICKS_PER_REV;
-//
-//        return ticks;
-//    }
-//}
+package org.firstinspires.ftc.teamcode.Tests;
+
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
+import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.subsystems.Localizer;
+
+public class Shooter {
+    // --- Hardware Constants ---
+    final double TICKS_PER_REV = 28.0;
+    final double WHEEL_DIAMETER_INCHES = 3.78;
+    final double HOODED_MULTIPLIER = 2.0;
+    double COMPRESSION_TUNING_FACTOR = 1.15;
+
+    // --- Field & Target Constants ---
+    public static Pose GOAL_POS_RED = new Pose(138, 138);
+    public static Pose GOAL_POS_BLUE = GOAL_POS_RED.mirror();
+
+    // MATHEMATICAL FIX: Y is height ABOVE the shooter, not the floor!
+    public static double SCORE_HEIGHT = 26.0;
+    public static double SHOOTER_HEIGHT_INCHES = 12.0; // CHANGE THIS to your physical robot!
+
+    public static double SCORE_ANGLE = Math.toRadians(-30);
+    public static double PASS_THROUGH_POINT_RADIUS = 5;
+
+    // --- Hood & Turret Limits ---
+    public static double MIN_HOOD_ANGLE = 35; // a1
+    public static double MAX_HOOD_ANGLE = 45; // a2
+    public static double MIN_SERVO_POS = 0.0; // s1
+    public static double MAX_SERVO_POS = 1.0; // s2
+
+    // --- Turret Hardware Configuration ---
+    // In PedroPathing, 0 is Forward, -90 is Right.
+    public static double TURRET_HARD_STOP_OFFSET_DEG = -90.0;
+
+    // --- Calculated Outputs ---
+    double hoodPos;
+    double turretAngle;
+    double flywheelTicks;
+    boolean targetInBounds;
+
+    public void calculateShootVectorAndUpdateTurret(Localizer localizer) {
+
+        double xPos = localizer.getXPos();
+        double yPos = localizer.getYPos();
+        double robotHeadingRad = Math.toRadians(localizer.getHeading());
+
+        // Create the Goal Vector (Field-Centric)
+        double xDistance = GOAL_POS_BLUE.getX() - xPos;
+        double yDistance = GOAL_POS_BLUE.getY() - yPos;
+        Vector robotToGoalVector = new Vector(xDistance, yDistance);
+        Vector robotVelocity = localizer.getVelocity();
+
+        // --- A. Calculate Initial Ball Launch Angle and Velocity ---
+
+        double coordinateTheta = robotVelocity.getTheta() - robotToGoalVector.getTheta();
+
+        // Radial & Tangential compensation
+        double vrr = -Math.cos(coordinateTheta) * robotVelocity.getMagnitude();
+        double vrt = Math.sin(coordinateTheta) * robotVelocity.getMagnitude();
+
+        double g = 386.1; // Gravity in in/s^2
+
+        // Setup trajectory limits
+        double x = Math.max(robotToGoalVector.getMagnitude() - PASS_THROUGH_POINT_RADIUS, 1.0);
+        double y = SCORE_HEIGHT - SHOOTER_HEIGHT_INCHES; // CRITICAL: Height relative to shooter
+        double targetAngle = SCORE_ANGLE;
+
+        // Initial launch angle (Formula 5 from PDF)
+        double hoodAngleRad = Math.atan((2 * y / x) - Math.tan(targetAngle));
+
+        double minAngleRad = Math.toRadians(MIN_HOOD_ANGLE);
+        double maxAngleRad = Math.toRadians(MAX_HOOD_ANGLE);
+        hoodAngleRad = Range.clip(hoodAngleRad, minAngleRad, maxAngleRad);
+
+        // Initial launch speed (Formula 6 from PDF)
+        double denominator1 = (x * Math.tan(hoodAngleRad) - y);
+        double flywheelSpeed = 0;
+        if (denominator1 > 0) {
+            flywheelSpeed = Math.sqrt((g * x * x) / (2 * Math.pow(Math.cos(hoodAngleRad), 2) * denominator1));
+        }
+
+        // --- B. Velocity Compensation ---
+
+        double vy = flywheelSpeed * Math.sin(hoodAngleRad);
+        double vx = flywheelSpeed * Math.cos(hoodAngleRad);
+        double time = x / vx;
+
+        double vxCompensated = vx + vrr;
+        double vxNew = Math.hypot(vxCompensated, vrt); // Safe pythagorean hypotenuse
+        double xNew = vxNew * time;
+
+        // New launch angle (Formula B.5 from PDF)
+        hoodAngleRad = Math.atan2(vy, vxNew);
+        hoodAngleRad = Range.clip(hoodAngleRad, minAngleRad, maxAngleRad);
+
+        // New launch speed based on new X distance (Formula B.6 from PDF)
+        double denominator2 = (xNew * Math.tan(hoodAngleRad) - y);
+        if (denominator2 > 0) {
+            flywheelSpeed = Math.sqrt((g * xNew * xNew) / (2 * Math.pow(Math.cos(hoodAngleRad), 2) * denominator2));
+        } else {
+            flywheelSpeed = 0; // Physically impossible trajectory (avoids NaN crash)
+        }
+
+        // --- C. Convert to Hardware Commands ---
+
+        flywheelTicks = velocityToTicks(flywheelSpeed);
+
+        // Fixes typo in PDF: Must use atan2, not tan!
+        double turretVelCompOffsetRad = Math.atan2(vrt, vxCompensated);
+
+        // Calculate absolute target relative to field, then subtract robot heading
+        double absoluteTargetHeading = robotToGoalVector.getTheta() - turretVelCompOffsetRad;
+
+        double relativeToRobotDeg = Math.toDegrees(absoluteTargetHeading - robotHeadingRad);
+        relativeToRobotDeg = AngleUnit.normalizeDegrees(relativeToRobotDeg);
+
+        // Map to the 180-degree physical sweep (0 degrees = Right Hard Stop)
+        turretAngle = relativeToRobotDeg - TURRET_HARD_STOP_OFFSET_DEG;
+
+        // Hardware safety clamp: Prevent commanding past the 180-degree sweep
+        if (turretAngle < 0 || turretAngle > 180) {
+            targetInBounds = false;
+            turretAngle = Range.clip(turretAngle, 0, 180);
+            flywheelTicks = 0; // Don't spin up if we physically can't aim at it
+        } else {
+            targetInBounds = true;
+        }
+
+        // Map hood angle to servo (Formula C.1 from PDF)
+        hoodPos = angleToPos(Math.toDegrees(hoodAngleRad));
+    }
+
+    // --- GETTERS ---
+    public double getHoodPos() { return hoodPos; }
+    public double getTurretAngle() { return turretAngle; }
+    public double getFlywheelTicks() { return flywheelTicks; }
+    public boolean isTargetInBounds() { return targetInBounds; }
+
+    // --- HARDWARE CONVERSION HELPERS ---
+
+    public double angleToPos(double alpha) {
+        double slope = (MIN_SERVO_POS - MAX_SERVO_POS) / (MIN_HOOD_ANGLE - MAX_HOOD_ANGLE);
+        return (slope * (alpha - MIN_HOOD_ANGLE)) + MIN_SERVO_POS;
+    }
+
+    public double velocityToTicks(double velocity) {
+        if (velocity <= 0) return 0;
+
+        double circumference = WHEEL_DIAMETER_INCHES * Math.PI;
+        double baseRotationsPerSec = velocity / circumference;
+        double hoodedRotationsPerSec = baseRotationsPerSec * HOODED_MULTIPLIER;
+        double actualRotationsPerSec = hoodedRotationsPerSec * COMPRESSION_TUNING_FACTOR;
+        return actualRotationsPerSec * TICKS_PER_REV;
+    }
+}

@@ -28,7 +28,9 @@ public class TestBlueTeleop extends OpMode {
 
     @Override
     public void init_loop() {
+
         turret.init_loop(telemetry);
+        localizer.init_loop();
     }
 
     @Override
@@ -57,6 +59,7 @@ public class TestBlueTeleop extends OpMode {
 
         ////Turret Code:
         turret.trackBlue(xPos, yPos, heading);
+        turret.turretStats(telemetry);
 
         ////Indexer Code:
         //Assigning Variables
@@ -65,5 +68,8 @@ public class TestBlueTeleop extends OpMode {
         boolean intakeOn = intakeSpeed >= Intake.DEAD_ZONE;
         indexerFSM.setTargetState(launchAll, shoot, intakeOn);
         indexerFSM.update();
+        telemetry.addData("Xpos", xPos);
+        telemetry.addData("yPos", yPos);
+        telemetry.addData("Current Heading", heading);
     }
 }

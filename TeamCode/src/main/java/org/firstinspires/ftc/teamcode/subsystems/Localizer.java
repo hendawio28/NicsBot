@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.pedropathing.ftc.FTCCoordinates;
+import com.pedropathing.ftc.InvertedFTCCoordinates;
 import com.pedropathing.ftc.PoseConverter;
 import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
@@ -28,7 +29,7 @@ public class Localizer {
     public void init (HardwareMap hwMap, StartPosition startPosition) {
         this.ftcStartingPose = PoseConverter.poseToPose2D(
                 startPosition.pose, // Grab the pose from the Enum you passed in
-                com.pedropathing.ftc.FTCCoordinates.INSTANCE
+                com.pedropathing.ftc.InvertedFTCCoordinates.INSTANCE
         );
 
         odo = hwMap.get(GoBildaPinpointDriver.class, "pinpoint");
